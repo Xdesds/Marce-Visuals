@@ -108,28 +108,7 @@ final class ClientSettings {
             try (var reader = Files.newBufferedReader(FILE)) {
                 var settings = GSON.fromJson(reader, ClientSettings.class);
                 if (settings != null) {
-                    if (settings.accent == null) {
-                        settings.accent = Accent.VIOLET;
-                    }
-                    if (settings.musicLayout == null) {
-                        settings.musicLayout = MusicLayout.INLINE;
-                    }
-                    settings.waveIntensity = Math.clamp(settings.waveIntensity, 0, 150);
-                    if (settings.normalShader == null) settings.normalShader = HitShader.PULSE;
-                    if (settings.criticalShader == null) settings.criticalShader = HitShader.CRYSTAL;
-                    if (settings.comboShader == null) settings.comboShader = HitShader.SHOCK;
-                    if (settings.normalColor == null) settings.normalColor = EffectColor.THEME;
-                    if (settings.criticalColor == null) settings.criticalColor = EffectColor.SKY;
-                    if (settings.comboColor == null) settings.comboColor = EffectColor.ROSE;
-                    if (settings.hitboxStyle == null) settings.hitboxStyle = HitboxStyle.WAVE;
-                    if (settings.hitboxColor == null) settings.hitboxColor = EffectColor.THEME;
-                    settings.hitDuration = Math.clamp(settings.hitDuration, 150, 1200);
-                    settings.hitIntensity = Math.clamp(settings.hitIntensity, 10, 100);
-                    settings.comboHits = Math.clamp(settings.comboHits, 2, 5);
-                    settings.hitboxWidth = Math.clamp(settings.hitboxWidth, 1, 4);
-                    settings.hitboxWave = Math.clamp(settings.hitboxWave, 0, 100);
-                    settings.hitboxWidth = Math.clamp(settings.hitboxWidth, 1, 4);
-                    settings.hitboxWave = Math.clamp(settings.hitboxWave, 0, 100);
+                    settings.normalize();
                     return settings;
                 }
             } catch (IOException | JsonParseException error) {
@@ -137,6 +116,29 @@ final class ClientSettings {
             }
         }
         return new ClientSettings();
+    }
+
+    private void normalize() {
+        if (accent == null) {
+            accent = Accent.VIOLET;
+        }
+        if (musicLayout == null) {
+            musicLayout = MusicLayout.INLINE;
+        }
+        waveIntensity = Math.clamp(waveIntensity, 0, 150);
+        if (normalShader == null) normalShader = HitShader.PULSE;
+        if (criticalShader == null) criticalShader = HitShader.CRYSTAL;
+        if (comboShader == null) comboShader = HitShader.SHOCK;
+        if (normalColor == null) normalColor = EffectColor.THEME;
+        if (criticalColor == null) criticalColor = EffectColor.SKY;
+        if (comboColor == null) comboColor = EffectColor.ROSE;
+        if (hitboxStyle == null) hitboxStyle = HitboxStyle.WAVE;
+        if (hitboxColor == null) hitboxColor = EffectColor.THEME;
+        hitDuration = Math.clamp(hitDuration, 150, 1200);
+        hitIntensity = Math.clamp(hitIntensity, 10, 100);
+        comboHits = Math.clamp(comboHits, 2, 5);
+        hitboxWidth = Math.clamp(hitboxWidth, 1, 4);
+        hitboxWave = Math.clamp(hitboxWave, 0, 100);
     }
 
     void save() {

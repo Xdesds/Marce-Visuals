@@ -112,7 +112,7 @@ final class DynamicIsland {
         boolean firstFrame = lastFrame == 0;
         lastFrame = now;
 
-        // The settings screen hides the vanilla HUD, including the boss bars.
+        // В меню Minecraft скрывает HUD, поэтому полосу босса учитываем отдельно.
         boolean inSettings = client.screen instanceof VisualScreen;
         if (inSettings) {
             dock.reset();
@@ -263,7 +263,7 @@ final class DynamicIsland {
             return 0;
         }
 
-        // Vanilla starts at y=12, uses a 5 px bar, and advances 19 px until one third of the screen.
+        // У Minecraft первая полоса стоит на y=12, шаг — 19 пикселей, предел — треть экрана.
         int visible = Math.min(count, Math.max(1, Math.ceilDiv(guiHeight / 3 - 12, 19)));
         return 24 + (visible - 1) * 19;
     }

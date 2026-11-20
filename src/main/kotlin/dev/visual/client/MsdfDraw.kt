@@ -146,7 +146,7 @@ internal object MsdfDraw {
             val entry = element.asJsonObject
             val plane = entry.getAsJsonObject("planeBounds")?.let(::bounds)
             val uv = entry.getAsJsonObject("atlasBounds")?.let(::bounds)?.let {
-                // Atlas metadata uses a bottom origin. TextureUploader uploads the top image row to v=0.
+                // Метрики атласа считаются снизу, а загруженная текстура — сверху. Переворачиваем UV.
                 Bounds(it.left / width, 1f - it.top / height, it.right / width, 1f - it.bottom / height)
             }
             entry["unicode"].asInt to Glyph(entry["advance"].asFloat, plane, uv)

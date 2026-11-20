@@ -38,7 +38,7 @@ vec2 drift(vec2 p, float t) {
 }
 
 float field(vec2 p) {
-    vec2 direction = vec2(0.573576, 0.819152); // 55 degrees
+    vec2 direction = vec2(0.573576, 0.819152); // 55 градусов
     vec2 flow = vec2(-direction.y, direction.x) * uMotion.x * 0.45;
     vec2 w = p + drift(p + flow + vec2(1.3, 3.4), uMotion.x) * 0.8;
     return clamp(dot(w, direction) / 1.25 + 0.5, 0.0, 1.0);
@@ -96,7 +96,7 @@ void main() {
     vec2 grainPixel = gl_FragCoord.xy / 1.2 + floor(uMotion.x * 24.0) * vec2(17.0, 59.0);
     float grain = hash(grainPixel) + hash(grainPixel + 7.13) - 1.0;
     color += grain * uMotion.y * 0.30;
-    // Keep the luminance low enough for text and controls while retaining the five-color ramp.
+    // Приглушаем градиент, чтобы он не мешал читать текст.
     color = mix(vec3(0.045, 0.040, 0.052), color, 0.34);
     color = mix(vec3(0.067, 0.067, 0.082), color, uStyle.x);
     color += uAccent * ripple * 0.19;

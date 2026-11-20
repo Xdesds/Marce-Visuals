@@ -8,7 +8,7 @@ uniform vec2 uTextureSize;
 uniform vec2 uRadiusPixels;
 uniform vec2 uShapeSize;
 uniform vec2 uCorners;
-uniform vec3 uWave; // bass strength, beat strength, phase
+uniform vec3 uWave; // сила баса, сила удара, фаза
 uniform float uOpacity;
 
 out vec4 fragColor;

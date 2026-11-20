@@ -6,8 +6,12 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 
-/** Discord IPC uses an eight-byte little-endian header followed by UTF-8 JSON. */
 final class DiscordIpc {
+    static final int HANDSHAKE = 0;
+    static final int FRAME = 1;
+    static final int CLOSE = 2;
+    static final int PING = 3;
+    static final int PONG = 4;
     static final int MAX_PAYLOAD = 64 * 1024;
     interface Transport extends AutoCloseable {
         int read(byte[] bytes, int offset, int length) throws IOException;
@@ -19,6 +23,7 @@ final class DiscordIpc {
     }
 
     static Frame read(Transport transport) throws IOException {
+        // В заголовке два числа little-endian: код команды и длина JSON в байтах.
         byte[] header = new byte[8];
         fully(transport, header);
         ByteBuffer buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN);

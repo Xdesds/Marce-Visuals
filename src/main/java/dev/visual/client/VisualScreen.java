@@ -175,7 +175,6 @@ public final class VisualScreen extends Screen {
 
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        // The Luma backdrop is drawn only inside the menu and picker.
     }
 
     private void drawSearch(Rect box, int mouseX, int mouseY) {
@@ -198,12 +197,12 @@ public final class VisualScreen extends Screen {
         }
     }
 
-    private void drawControl(Control control, Rect bounds, int mouseX, int mouseY, int accent, boolean overview) {
+    private void drawControl(GuiControl control, Rect bounds, int mouseX, int mouseY, int accent, boolean overview) {
         boolean hover = bounds.contains(mouseX, mouseY);
         if (hover) {
             rounded(bounds.x, bounds.y, bounds.w, bounds.h, 5, HOVER);
         }
-        String label = control == Control.LAYOUT && bounds.w < 140 ? "Layout" : control.label;
+        String label = control == GuiControl.LAYOUT && bounds.w < 140 ? "Layout" : control.label;
         String option = control.value(settings);
         if (option != null) label = TYPE.ellipsize(label, LABEL_SIZE, bounds.w - TYPE.width(option, 5.3f) - 21);
         text(label, bounds.x + 5, bounds.centerY(), LABEL_SIZE, TEXT);
@@ -221,9 +220,9 @@ public final class VisualScreen extends Screen {
             rounded(at, bounds.centerY() - 3.25f, 11, 6.5f, 3.25f, enabled ? accent : 0xFF303036);
             rounded(at + (enabled ? 5.75f : 1.25f), bounds.centerY() - 2.1f, 4.2f, 4.2f, 2.1f,
                 enabled ? accentTint(accent) : mixColor(0xFF77737F, accent, 0.35f));
-        } else if (control == Control.LAYOUT) {
+        } else if (control == GuiControl.LAYOUT) {
             drawSegment(bounds, overview, mouseX, mouseY);
-        } else if (control == Control.WAVE) {
+        } else if (control == GuiControl.WAVE) {
             Rect track = waveTrack(bounds);
             float filled = track.w * settings.waveIntensity / 150f;
             rounded(track.x, track.centerY() - 0.75f, track.w, 1.5f, 0.75f, 0xFF3B3843);
@@ -233,7 +232,7 @@ public final class VisualScreen extends Screen {
             rounded(track.x + filled - 1.8f, track.centerY() - 1.8f, 3.6f, 3.6f, 1.8f, 0xFFF3F0F8);
             String percent = settings.waveIntensity + "%";
             text(percent, bounds.right() - 4 - TYPE.width(percent, 5.2f), bounds.centerY(), 5.2f, MUTED);
-        } else if (control == Control.ACCENT) {
+        } else if (control == GuiControl.ACCENT) {
             rounded(bounds.right() - 13, bounds.centerY() - 3.25f, 6.5f, 6.5f, 2, accent);
             if (bounds.w >= 110) {
                 String hex = hex(accent);
@@ -285,10 +284,12 @@ public final class VisualScreen extends Screen {
         icon(Icon.CANCEL, close.centerX(), close.centerY(), 8, MUTED);
         rounded(box.x + 8, box.y + 21, box.w - 16, 0.5f, 0, LINE);
         for (int i = 0; i < popup.controls.size(); i++) {
-            Control control = popup.controls.get(i);
+            GuiControl control = popup.controls.get(i);
             Rect row = detailRow(box, i);
             drawControl(control, row, mouseX, mouseY, accent, false);
-            text(control.detail, row.x + 5, row.y + 17, 5.1f, QUIET);
+            if (!control.detail.isBlank()) {
+                text(TYPE.ellipsize(control.detail, 5.1f, row.w - 10), row.x + 5, row.y + 17, 5.1f, QUIET);
+            }
             if (i + 1 < popup.controls.size()) {
                 rounded(row.x + 5, row.y + 22, row.w - 10, 0.5f, 0, LINE);
             }
@@ -422,7 +423,7 @@ public final class VisualScreen extends Screen {
         return super.mouseClicked(event, doubleClick);
     }
 
-    private void activate(Control control, Rect bounds, double x, double y, boolean overview) {
+    private void activate(GuiControl control, Rect bounds, double x, double y, boolean overview) {
         Module module = overview ? module(control) : null;
         if (module != null && (!control.toggle() || x < bounds.right() - 18)) {
             openSettings(module, bounds.y - menu().y, false);
@@ -430,7 +431,7 @@ public final class VisualScreen extends Screen {
             control.flip(settings);
             settings.save();
             island.showMessage(control.label + (control.enabled(settings) ? " enabled" : " disabled"));
-        } else if (control == Control.LAYOUT) {
+        } else if (control == GuiControl.LAYOUT) {
             Rect track = segmentBox(bounds);
             if (track.contains(x, y)) {
                 draggingSegment = overview ? inlineSegment : popupSegment;
@@ -439,14 +440,14 @@ public final class VisualScreen extends Screen {
                 draggingSegment.update(settings.musicLayout.ordinal(), System.nanoTime());
                 draggingSegment.press(segmentX(x), System.nanoTime());
             }
-        } else if (control == Control.WAVE) {
+        } else if (control == GuiControl.WAVE) {
             Rect track = waveTrack(bounds);
             if (track.contains(x, y)) {
                 waveDrag = track;
                 waveMotion = overview ? menuMotion() : popupMotion(settingsBox(menu()));
                 changeWave(x);
             }
-        } else if (control == Control.ACCENT) {
+        } else if (control == GuiControl.ACCENT) {
             int rgb = settings.accentColor();
             hsv = Color.RGBtoHSB((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255, null);
             pickerOpenedAt = System.nanoTime();
@@ -621,7 +622,7 @@ public final class VisualScreen extends Screen {
         Rect right = column(frame, true);
         String query = search.getValue().strip().toLowerCase(Locale.ROOT);
         if (!query.isEmpty()) {
-            List<Control> matches = Arrays.stream(Control.values())
+            List<GuiControl> matches = Arrays.stream(GuiControl.values())
                 .filter(control -> control.searchTerms.contains(query)).toList();
             if (matches.isEmpty()) {
                 return List.of();
@@ -632,20 +633,20 @@ public final class VisualScreen extends Screen {
         }
         if (tab == Tab.HUD) {
             return List.of(new Group("On-screen HUD", left.x, left.w, 44,
-                    List.of(Control.ISLAND, Control.FPS, Control.PING)),
-                new Group("Music", right.x, right.w, 44, List.of(Control.MUSIC, Control.LAYOUT, Control.WAVE)),
-                new Group("Notifications", right.x, right.w, 117, List.of(Control.FEEDBACK)));
+                    List.of(GuiControl.ISLAND, GuiControl.FPS, GuiControl.PING)),
+                new Group("Music", right.x, right.w, 44, List.of(GuiControl.MUSIC, GuiControl.LAYOUT, GuiControl.WAVE)),
+                new Group("Notifications", right.x, right.w, 117, List.of(GuiControl.FEEDBACK)));
         }
         if (tab == Tab.FUNCTION) {
             return List.of(new Group("Combat visuals", left.x, left.w, 44,
-                    List.of(Control.HIT_COLOR, Control.NORMAL_SHADER, Control.CRITICAL_SHADER, Control.COMBO_SHADER)),
+                    List.of(GuiControl.HIT_COLOR, GuiControl.NORMAL_SHADER, GuiControl.CRITICAL_SHADER, GuiControl.COMBO_SHADER)),
                 new Group("Entity outlines", right.x, right.w, 44,
-                    List.of(Control.HITBOX, Control.BOX_STYLE, Control.BOX_COLOR, Control.BOX_GLOW)));
+                    List.of(GuiControl.HITBOX, GuiControl.BOX_STYLE, GuiControl.BOX_COLOR, GuiControl.BOX_GLOW)));
         }
-        return List.of(new Group("Colors", left.x, left.w, 44, List.of(Control.ACCENT, Control.VIOLET, Control.MINT, Control.SKY)),
+        return List.of(new Group("Colors", left.x, left.w, 44, List.of(GuiControl.ACCENT, GuiControl.VIOLET, GuiControl.MINT, GuiControl.SKY)),
             new Group("Background", right.x, right.w, 44,
-                List.of(Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY)),
-            new Group("Integrations", right.x, right.w, 137, List.of(Control.DISCORD_RPC)));
+                List.of(GuiControl.GRADIENT, GuiControl.ANIMATION, GuiControl.GRAIN, GuiControl.JELLY)),
+            new Group("Integrations", right.x, right.w, 137, List.of(GuiControl.DISCORD_RPC)));
     }
 
     private Rect menu() {
@@ -676,7 +677,7 @@ public final class VisualScreen extends Screen {
         return new Rect(group.x, frame.y + group.offset + index * ROW_HEIGHT, group.w, ROW_HEIGHT - 1);
     }
 
-    private static Rect optionsButton(Rect bounds, Control control) {
+    private static Rect optionsButton(Rect bounds, GuiControl control) {
         return new Rect(bounds.right() - (control.toggle() ? 29 : 27), bounds.y + 1, 11, bounds.h - 2);
     }
 
@@ -715,7 +716,7 @@ public final class VisualScreen extends Screen {
         float dt = Math.min((now - railUpdatedAt) / 1_000_000_000f, 0.05f);
         railUpdatedAt = now;
         float target = railExpanded ? EXPANDED_RAIL_WIDTH : RAIL_WIDTH;
-        // Exact critically damped spring preserves velocity when the direction changes.
+        // При повторном клике панель меняет направление без рывка.
         float offset = railWidth - target;
         float impulse = railVelocity + 20 * offset;
         float decay = (float) Math.exp(-20 * dt);
@@ -851,7 +852,7 @@ public final class VisualScreen extends Screen {
         text(text, x - TYPE.width(text, size) * 0.5f, y, size, color);
     }
 
-    private record Group(String title, int x, int w, int offset, List<Control> controls) {}
+    private record Group(String title, int x, int w, int offset, List<GuiControl> controls) {}
 
     private record Rect(int x, int y, int w, int h) {
         int right() { return x + w; }
@@ -862,7 +863,7 @@ public final class VisualScreen extends Screen {
 
     private enum PickerDrag { COLOR, HUE }
 
-    private static Module module(Control control) {
+    private static Module module(GuiControl control) {
         return switch (control) {
             case ISLAND -> Module.ISLAND;
             case MUSIC -> Module.MUSIC;
@@ -874,19 +875,19 @@ public final class VisualScreen extends Screen {
     }
 
     private enum Module {
-        ISLAND("Dynamic Island", List.of(Control.ISLAND, Control.FPS, Control.PING, Control.FEEDBACK)),
-        MUSIC("Now playing", List.of(Control.MUSIC, Control.LAYOUT, Control.WAVE)),
-        THEME("GUI Settings", List.of(Control.ACCENT, Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY, Control.DISCORD_RPC)),
-        HIT_COLOR("Shader Hit Color", List.of(Control.HIT_COLOR, Control.NORMAL_SHADER, Control.NORMAL_COLOR,
-            Control.CRITICAL_SHADER, Control.CRITICAL_COLOR, Control.COMBO_SHADER, Control.COMBO_COLOR,
-            Control.HIT_DURATION, Control.HIT_INTENSITY, Control.COMBO_HITS)),
-        HITBOX("Custom Hitbox", List.of(Control.HITBOX, Control.BOX_STYLE, Control.BOX_COLOR,
-            Control.BOX_WIDTH, Control.BOX_WAVE, Control.BOX_GLOW, Control.BOX_PLAYERS));
+        ISLAND("Dynamic Island", List.of(GuiControl.ISLAND, GuiControl.FPS, GuiControl.PING, GuiControl.FEEDBACK)),
+        MUSIC("Now playing", List.of(GuiControl.MUSIC, GuiControl.LAYOUT, GuiControl.WAVE)),
+        THEME("GUI Settings", List.of(GuiControl.ACCENT, GuiControl.GRADIENT, GuiControl.ANIMATION, GuiControl.GRAIN, GuiControl.JELLY, GuiControl.DISCORD_RPC)),
+        HIT_COLOR("Shader Hit Color", List.of(GuiControl.HIT_COLOR, GuiControl.NORMAL_SHADER, GuiControl.NORMAL_COLOR,
+            GuiControl.CRITICAL_SHADER, GuiControl.CRITICAL_COLOR, GuiControl.COMBO_SHADER, GuiControl.COMBO_COLOR,
+            GuiControl.HIT_DURATION, GuiControl.HIT_INTENSITY, GuiControl.COMBO_HITS)),
+        HITBOX("Custom Hitbox", List.of(GuiControl.HITBOX, GuiControl.BOX_STYLE, GuiControl.BOX_COLOR,
+            GuiControl.BOX_WIDTH, GuiControl.BOX_WAVE, GuiControl.BOX_GLOW, GuiControl.BOX_PLAYERS));
 
         final String label;
-        final List<Control> controls;
+        final List<GuiControl> controls;
 
-        Module(String label, List<Control> controls) {
+        Module(String label, List<GuiControl> controls) {
             this.label = label;
             this.controls = controls;
         }
@@ -904,152 +905,4 @@ public final class VisualScreen extends Screen {
         }
     }
 
-    private enum Control {
-        ISLAND("Dynamic Island", "hud", "Keep the HUD at the top of the screen"),
-        FPS("FPS counter", "hud frame rate", "Show the live frame rate"),
-        PING("Ping", "hud latency", "Show the connection latency"),
-        FEEDBACK("Status messages", "hud notification", "Show changes made in this menu"),
-        MUSIC("Now playing", "music spotify track media", "Show the active track and cover"),
-        LAYOUT("Track layout", "music separate inline", "Inside the island or below it"),
-        WAVE("Wave intensity", "music audio bass beat", "Set how strongly the edges move"),
-        ACCENT("Accent color", "theme appearance palette custom", "Open the color picker"),
-        GRADIENT("Gradient", "gui background grainient", "Use theme colors in the background"),
-        ANIMATION("Animation", "gui gradient motion flow", "Animate the gradient and pointer flow"),
-        JELLY("Jelly opening", "gui animation spring menu", "Use a spring animation when opening"),
-        DISCORD_RPC("Discord RPC", "gui discord rich presence activity", "Show Marce Visual in desktop Discord"),
-        GRAIN("Grain", "gui gradient texture noise", "Add a fine grain texture"),
-        HIT_COLOR("Shader Hit Color", "function combat damage", "Shaders on confirmed local hits"),
-        NORMAL_SHADER("Normal shader", "function hit pulse aurora", "Click to cycle the normal hit effect"),
-        CRITICAL_SHADER("Critical shader", "function hit crit crystal", "Critical hits take priority over combos"),
-        COMBO_SHADER("Combo shader", "function hit combo shock", "Repeated hits on one target within 1.2s"),
-        NORMAL_COLOR("Normal color", "function hit color", "Independent normal-hit palette"),
-        CRITICAL_COLOR("Critical color", "function crit color", "Independent critical-hit palette"),
-        COMBO_COLOR("Combo color", "function combo color", "Independent combo-hit palette"),
-        HIT_DURATION("Duration", "function hit time", "How long the shader fades after a hit"),
-        HIT_INTENSITY("Intensity", "function hit opacity", "Opacity of the shader over the skin"),
-        COMBO_HITS("Combo starts at", "function hit streak", "Hits required to activate combo shader"),
-        HITBOX("Custom Hitbox", "function entity outline", "Visual bounds without changing collision"),
-        BOX_STYLE("Line style", "function hitbox vanilla wave", "Vanilla debug bounds or animated waves"),
-        BOX_COLOR("Line color", "function hitbox color", "Wave-line palette; Theme follows GUI accent"),
-        BOX_WIDTH("Line width", "function hitbox thickness", "Core line thickness in pixels"),
-        BOX_WAVE("Wave amount", "function hitbox amplitude", "Wave displacement; zero gives straight lines"),
-        BOX_GLOW("Glow", "function hitbox bloom halo", "Soft layered halo around wave lines"),
-        BOX_PLAYERS("Players only", "function hitbox filter", "Hide bounds of mobs and animals"),
-        VIOLET(Accent.VIOLET), MINT(Accent.MINT), SKY(Accent.SKY);
-
-        final String label;
-        final String searchTerms;
-        final String detail;
-        final Accent preset;
-
-        Control(String label, String keywords, String detail) {
-            this.label = label;
-            this.searchTerms = label.toLowerCase(Locale.ROOT) + " " + keywords;
-            this.detail = detail;
-            this.preset = null;
-        }
-
-        Control(Accent preset) {
-            this.label = preset.label;
-            this.searchTerms = label.toLowerCase(Locale.ROOT) + " theme appearance preset";
-            this.detail = String.format(Locale.ROOT, "#%06X", preset.color & 0xFFFFFF);
-            this.preset = preset;
-        }
-
-        boolean toggle() {
-            return switch (this) {
-                case ISLAND, FPS, PING, FEEDBACK, MUSIC, GRADIENT, ANIMATION, GRAIN, JELLY,
-                    HIT_COLOR, HITBOX, BOX_GLOW, BOX_PLAYERS, DISCORD_RPC -> true;
-                default -> false;
-            };
-        }
-
-        boolean enabled(ClientSettings settings) {
-            return switch (this) {
-                case ISLAND -> settings.island;
-                case FPS -> settings.fps;
-                case PING -> settings.ping;
-                case FEEDBACK -> settings.feedback;
-                case MUSIC -> settings.music;
-                case GRADIENT -> settings.guiGradient;
-                case ANIMATION -> settings.guiAnimation;
-                case GRAIN -> settings.guiGrain;
-                case JELLY -> settings.guiJelly;
-                case DISCORD_RPC -> settings.discordRpc;
-                case HIT_COLOR -> settings.hitColor;
-                case HITBOX -> settings.customHitbox;
-                case BOX_GLOW -> settings.hitboxGlow;
-                case BOX_PLAYERS -> settings.hitboxPlayersOnly;
-                default -> false;
-            };
-        }
-
-        void flip(ClientSettings settings) {
-            switch (this) {
-                case ISLAND -> settings.island = !settings.island;
-                case FPS -> settings.fps = !settings.fps;
-                case PING -> settings.ping = !settings.ping;
-                case FEEDBACK -> settings.feedback = !settings.feedback;
-                case MUSIC -> settings.music = !settings.music;
-                case GRADIENT -> settings.guiGradient = !settings.guiGradient;
-                case ANIMATION -> settings.guiAnimation = !settings.guiAnimation;
-                case GRAIN -> settings.guiGrain = !settings.guiGrain;
-                case JELLY -> settings.guiJelly = !settings.guiJelly;
-                case DISCORD_RPC -> settings.discordRpc = !settings.discordRpc;
-                case HIT_COLOR -> settings.hitColor = !settings.hitColor;
-                case HITBOX -> settings.customHitbox = !settings.customHitbox;
-                case BOX_GLOW -> settings.hitboxGlow = !settings.hitboxGlow;
-                case BOX_PLAYERS -> settings.hitboxPlayersOnly = !settings.hitboxPlayersOnly;
-                default -> throw new IllegalStateException("Control is not a toggle");
-            }
-        }
-
-        String value(ClientSettings s) {
-            return switch (this) {
-                case NORMAL_SHADER -> s.normalShader.label;
-                case CRITICAL_SHADER -> s.criticalShader.label;
-                case COMBO_SHADER -> s.comboShader.label;
-                case NORMAL_COLOR -> s.normalColor.label;
-                case CRITICAL_COLOR -> s.criticalColor.label;
-                case COMBO_COLOR -> s.comboColor.label;
-                case HIT_DURATION -> s.hitDuration + " ms";
-                case HIT_INTENSITY -> s.hitIntensity + "%";
-                case COMBO_HITS -> s.comboHits + " hits";
-                case BOX_STYLE -> s.hitboxStyle.label;
-                case BOX_COLOR -> s.hitboxColor.label;
-                case BOX_WIDTH -> s.hitboxWidth + " px";
-                case BOX_WAVE -> s.hitboxWave + "%";
-                default -> null;
-            };
-        }
-
-        void cycle(ClientSettings s) {
-            switch (this) {
-                case NORMAL_SHADER -> s.normalShader = next(s.normalShader);
-                case CRITICAL_SHADER -> s.criticalShader = next(s.criticalShader);
-                case COMBO_SHADER -> s.comboShader = next(s.comboShader);
-                case NORMAL_COLOR -> s.normalColor = next(s.normalColor);
-                case CRITICAL_COLOR -> s.criticalColor = next(s.criticalColor);
-                case COMBO_COLOR -> s.comboColor = next(s.comboColor);
-                case HIT_DURATION -> s.hitDuration = nextNumber(s.hitDuration, 250, 400, 650, 900);
-                case HIT_INTENSITY -> s.hitIntensity = nextNumber(s.hitIntensity, 40, 65, 85, 100);
-                case COMBO_HITS -> s.comboHits = nextNumber(s.comboHits, 2, 3, 4, 5);
-                case BOX_STYLE -> s.hitboxStyle = next(s.hitboxStyle);
-                case BOX_COLOR -> s.hitboxColor = next(s.hitboxColor);
-                case BOX_WIDTH -> s.hitboxWidth = nextNumber(s.hitboxWidth, 1, 2, 3, 4);
-                case BOX_WAVE -> s.hitboxWave = nextNumber(s.hitboxWave, 0, 25, 50, 75, 100);
-                default -> throw new IllegalStateException("Control has no options");
-            }
-        }
-
-        private static <E extends Enum<E>> E next(E current) {
-            E[] values = current.getDeclaringClass().getEnumConstants();
-            return values[(current.ordinal() + 1) % values.length];
-        }
-
-        private static int nextNumber(int current, int... values) {
-            for (int i = 0; i < values.length; i++) if (values[i] == current) return values[(i + 1) % values.length];
-            return values[0];
-        }
-    }
 }

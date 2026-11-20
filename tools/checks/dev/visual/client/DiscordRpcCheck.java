@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-/** Exercises the real RPC worker against a fragmented, local in-memory peer. */
 public final class DiscordRpcCheck {
     public static void main(String[] args) throws Exception {
         if (args.length > 0 && args[0].equals("--live")) {
@@ -72,7 +71,7 @@ public final class DiscordRpcCheck {
         void feed(int opcode, String json) {
             byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
             byte[] packet = ByteBuffer.allocate(8 + bytes.length).order(ByteOrder.LITTLE_ENDIAN).putInt(opcode).putInt(bytes.length).put(bytes).array();
-            // Split inside the header and inside UTF-8 content to exercise stream framing.
+            // Режем заголовок и UTF-8-символы, как при чтении из настоящего pipe.
             for (int start = 0; start < packet.length; start += 3) incoming.add(Arrays.copyOfRange(packet, start, Math.min(start + 3, packet.length)));
         }
         DiscordIpc.Frame next() throws InterruptedException {

@@ -10,7 +10,7 @@ out vec4 fragColor;
 void main() {
     vec4 color = texture(uLogo, vUv);
     if (vLayer.x > 0.5) {
-        // These curves separate the artwork along the gap and along the left ring's painted edge.
+        // Разделяем планету по зазору и по краю левой части кольца.
         vec2 p = vUv * 1254.0;
         float x = p.x - 250.0;
         float divider = 885.0 - 0.16 * x - 0.00029 * x * x;

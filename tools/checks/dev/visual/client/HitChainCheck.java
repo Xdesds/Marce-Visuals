@@ -2,7 +2,6 @@ package dev.visual.client;
 
 import java.util.UUID;
 
-/** Dependency-free regression checks, run by Gradle checkHitChain/check/build. */
 public final class HitChainCheck {
     public static void main(String[] args) {
         UUID a = new UUID(0, 1), b = new UUID(0, 2);
