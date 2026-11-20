@@ -1,0 +1,22 @@
+{
+  "schemaVersion": 1,
+  "id": "visual_client",
+  "version": "${version}",
+  "name": "Marce Visual",
+  "license": "MIT",
+  "icon": "assets/visual_client/marce-logo.png",
+  "description": "Visual settings and an animated Dynamic Island HUD.",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.visual.client.VisualClient"]
+  },
+  "mixins": ["visual-client.mixins.json"],
+  "accessWidener": "luma-renderer.accesswidener",
+  "depends": {
+    "fabricloader": ">=0.18.4",
+    "fabric-api": "*",
+    "fabric-language-kotlin": ">=1.13.9",
+    "minecraft": "1.21.11",
+    "java": ">=21"
+  }
+}

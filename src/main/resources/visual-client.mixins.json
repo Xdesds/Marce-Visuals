@@ -1,0 +1,7 @@
+{
+  "required": true,
+  "package": "dev.visual.client.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": ["BossHealthOverlayAccessor", "GameRendererMixin", "GuiMixin", "LivingEntityRenderStateMixin", "LivingEntityRendererMixin", "RenderTypeInvoker", "RenderPipelinesInvoker"],
+  "injectors": { "defaultRequire": 1 }
+}

@@ -1,0 +1,74 @@
+plugins {
+    id 'net.fabricmc.fabric-loom-remap' version '1.15.5'
+    id 'org.jetbrains.kotlin.jvm' version '2.3.10'
+}
+
+group = 'dev.visual'
+version = '0.1.0'
+
+base {
+    archivesName = 'marce-visual'
+}
+
+repositories {
+    maven { url = 'https://maven.fabricmc.net/' }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft 'com.mojang:minecraft:1.21.11'
+    mappings loom.officialMojangMappings()
+    modImplementation 'net.fabricmc:fabric-loader:0.18.4'
+    modImplementation 'net.fabricmc.fabric-api:fabric-api:0.141.3+1.21.11'
+    modImplementation 'net.fabricmc:fabric-language-kotlin:1.13.9+kotlin.2.3.10'
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir 'vendor/luma/src/main/kotlin'
+        resources.srcDir 'vendor/luma/src/main/resources'
+    }
+    checks {
+        java.srcDir 'tools/checks'
+        compileClasspath += sourceSets.main.output
+        runtimeClasspath += sourceSets.main.output
+    }
+}
+
+loom {
+    accessWidenerPath = file('src/main/resources/luma-renderer.accesswidener')
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+kotlin {
+    jvmToolchain(21)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 21
+}
+
+processResources {
+    inputs.property 'version', project.version
+    filesMatching('fabric.mod.json') {
+        expand version: project.version
+    }
+}
+
+tasks.register('checkHitChain', JavaExec) {
+    dependsOn checksClasses
+    classpath = sourceSets.checks.runtimeClasspath
+    mainClass = 'dev.visual.client.HitChainCheck'
+}
+
+check.dependsOn checkHitChain
+
+jar {
+    from('LICENSE')
+    from('vendor/luma/LICENSE') {
+        rename { 'LICENSE-Luma' }
+    }
+}
