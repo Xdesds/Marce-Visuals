@@ -30,8 +30,8 @@ sourceSets {
     }
     checks {
         java.srcDir 'tools/checks'
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
+        compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+        runtimeClasspath += sourceSets.main.runtimeClasspath
     }
 }
 
@@ -65,6 +65,14 @@ tasks.register('checkHitChain', JavaExec) {
 }
 
 check.dependsOn checkHitChain
+
+tasks.register('checkDiscordRpc', JavaExec) {
+    dependsOn checksClasses
+    classpath = sourceSets.checks.runtimeClasspath
+    mainClass = 'dev.visual.client.DiscordRpcCheck'
+}
+
+check.dependsOn checkDiscordRpc
 
 jar {
     from('LICENSE')

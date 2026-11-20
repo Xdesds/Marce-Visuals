@@ -644,7 +644,8 @@ public final class VisualScreen extends Screen {
         }
         return List.of(new Group("Colors", left.x, left.w, 44, List.of(Control.ACCENT, Control.VIOLET, Control.MINT, Control.SKY)),
             new Group("Background", right.x, right.w, 44,
-                List.of(Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY)));
+                List.of(Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY)),
+            new Group("Integrations", right.x, right.w, 137, List.of(Control.DISCORD_RPC)));
     }
 
     private Rect menu() {
@@ -875,7 +876,7 @@ public final class VisualScreen extends Screen {
     private enum Module {
         ISLAND("Dynamic Island", List.of(Control.ISLAND, Control.FPS, Control.PING, Control.FEEDBACK)),
         MUSIC("Now playing", List.of(Control.MUSIC, Control.LAYOUT, Control.WAVE)),
-        THEME("GUI Settings", List.of(Control.ACCENT, Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY)),
+        THEME("GUI Settings", List.of(Control.ACCENT, Control.GRADIENT, Control.ANIMATION, Control.GRAIN, Control.JELLY, Control.DISCORD_RPC)),
         HIT_COLOR("Shader Hit Color", List.of(Control.HIT_COLOR, Control.NORMAL_SHADER, Control.NORMAL_COLOR,
             Control.CRITICAL_SHADER, Control.CRITICAL_COLOR, Control.COMBO_SHADER, Control.COMBO_COLOR,
             Control.HIT_DURATION, Control.HIT_INTENSITY, Control.COMBO_HITS)),
@@ -915,6 +916,7 @@ public final class VisualScreen extends Screen {
         GRADIENT("Gradient", "gui background grainient", "Use theme colors in the background"),
         ANIMATION("Animation", "gui gradient motion flow", "Animate the gradient and pointer flow"),
         JELLY("Jelly opening", "gui animation spring menu", "Use a spring animation when opening"),
+        DISCORD_RPC("Discord RPC", "gui discord rich presence activity", "Show Marce Visual in desktop Discord"),
         GRAIN("Grain", "gui gradient texture noise", "Add a fine grain texture"),
         HIT_COLOR("Shader Hit Color", "function combat damage", "Shaders on confirmed local hits"),
         NORMAL_SHADER("Normal shader", "function hit pulse aurora", "Click to cycle the normal hit effect"),
@@ -957,7 +959,7 @@ public final class VisualScreen extends Screen {
         boolean toggle() {
             return switch (this) {
                 case ISLAND, FPS, PING, FEEDBACK, MUSIC, GRADIENT, ANIMATION, GRAIN, JELLY,
-                    HIT_COLOR, HITBOX, BOX_GLOW, BOX_PLAYERS -> true;
+                    HIT_COLOR, HITBOX, BOX_GLOW, BOX_PLAYERS, DISCORD_RPC -> true;
                 default -> false;
             };
         }
@@ -973,6 +975,7 @@ public final class VisualScreen extends Screen {
                 case ANIMATION -> settings.guiAnimation;
                 case GRAIN -> settings.guiGrain;
                 case JELLY -> settings.guiJelly;
+                case DISCORD_RPC -> settings.discordRpc;
                 case HIT_COLOR -> settings.hitColor;
                 case HITBOX -> settings.customHitbox;
                 case BOX_GLOW -> settings.hitboxGlow;
@@ -992,6 +995,7 @@ public final class VisualScreen extends Screen {
                 case ANIMATION -> settings.guiAnimation = !settings.guiAnimation;
                 case GRAIN -> settings.guiGrain = !settings.guiGrain;
                 case JELLY -> settings.guiJelly = !settings.guiJelly;
+                case DISCORD_RPC -> settings.discordRpc = !settings.discordRpc;
                 case HIT_COLOR -> settings.hitColor = !settings.hitColor;
                 case HITBOX -> settings.customHitbox = !settings.customHitbox;
                 case BOX_GLOW -> settings.hitboxGlow = !settings.hitboxGlow;

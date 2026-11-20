@@ -30,6 +30,7 @@ final class ClientSettings {
     boolean guiAnimation = true;
     boolean guiGrain = true;
     boolean guiJelly = true;
+    boolean discordRpc = true;
     boolean hitColor = false;
     HitShader normalShader = HitShader.PULSE;
     HitShader criticalShader = HitShader.CRYSTAL;

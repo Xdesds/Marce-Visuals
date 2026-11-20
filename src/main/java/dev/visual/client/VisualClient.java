@@ -19,6 +19,7 @@ public final class VisualClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         var settings = ClientSettings.load();
+        var discord = new DiscordRpc();
         var music = new WindowsMusic();
         var island = new DynamicIsland(settings, music);
         VisualDraw.initialize();
@@ -39,6 +40,8 @@ public final class VisualClient implements ClientModInitializer {
         ));
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            discord.update(settings.discordRpc, client.level == null ? "В главном меню"
+                : client.hasSingleplayerServer() ? "Одиночная игра" : "Мультиплеер");
             HitEffects.tick(client);
             music.setEnabled(client.player != null && settings.island && settings.music);
             while (key.consumeClick()) {
@@ -58,6 +61,7 @@ public final class VisualClient implements ClientModInitializer {
             HitShaderRenderer.clear();
         });
         ClientLifecycleEvents.CLIENT_STOPPING.register(client -> {
+            discord.close();
             music.close();
             VisualDraw.close();
         });
